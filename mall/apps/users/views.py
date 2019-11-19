@@ -6,6 +6,7 @@ from django.db import DatabaseError
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views import View
+from django_redis import get_redis_connection
 
 from apps.users.models import User
 from utils.response_code import RETCODE
@@ -28,6 +29,7 @@ class RegisterView(View):
         password2 = request.POST.get('password2')
         mobile = request.POST.get('mobile')
         allow = request.POST.get('allow')
+        sms_code = request.POST.get('sms_code')
         # 校验参数
         # 判断参数是否齐全
         if not all([username, password, password2, mobile, allow]):
@@ -47,6 +49,13 @@ class RegisterView(View):
         # 判断是否勾选用户协议
         if allow != 'on':
             return http.HttpResponseBadRequest('请勾选用户协议')
+        # 短信验证码验证
+        redis_conn = get_redis_connection('code')
+        sms_code_saved = redis_conn.get('sms_%s' % mobile)
+        if sms_code_saved is None:
+            return render(request, 'register.html', {'sms_code_errmsg': '无效的短信验证码'})
+        if sms_code != sms_code_saved.decode():
+            return render(request, 'register.html', {'sms_code_errmsg': '输入短信验证码有误'})
         # 保存注册数据
         try:
             user = User.objects.create_user(username=username, password=password, mobile=mobile)
@@ -55,7 +64,9 @@ class RegisterView(View):
         # 实现状态保持>>>将通过认证的用户的唯一标识信息（比如：用户ID）写入到当前session会话中
         login(request, user)
         # 响应注册结果
-        return redirect(reverse('index:index'))
+        response = redirect(reverse('index:index'))
+        response.set_cookie('username', user.username, max_age=3600*24*15)
+        return response
     
 
 class UsernameCountView(View):
