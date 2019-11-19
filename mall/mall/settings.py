@@ -165,3 +165,5 @@ AUTH_USER_MODEL = 'users.User'
 AUTHENTICATION_BACKENDS = [
     'apps.users.utils.UsernameMobileAuthBackend'
 ]
+# 指定未登录用户跳转路径next
+LOGIN_URL = '/login/'

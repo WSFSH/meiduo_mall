@@ -2,6 +2,7 @@ import re
 
 from django import http
 from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import DatabaseError
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -151,7 +152,12 @@ class LoginView(View):
             request.session.set_expiry(None)
             
         # 响应登录结果
-        response = redirect(reverse('index:index'))
+        # 响应登录结果
+        next = request.GET.get('next')
+        if next:
+            response = redirect(next)
+        else:
+            response = redirect(reverse('index:index'))
 
         # 注册时用户名写入到cookie，有效期15天 渲染模板数据[[]]
         response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
@@ -173,4 +179,17 @@ class LogoutView(View):
         response.delete_cookie('username')
         
         return response
+    
+
+class UserCenterView(LoginRequiredMixin, View):
+    """用户中心"""
+
+    def get(self, request):
+        """提供个人信息界面"""
+        context = {
+            'username': request.user.username,
+            'mobile': request.user.mobile,
+            'email': request.user.email,
+        }
+        return render(request, 'user_center.html', context=context)
 
