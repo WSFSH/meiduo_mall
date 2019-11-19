@@ -1,7 +1,7 @@
 import re
 
 from django import http
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.db import DatabaseError
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -145,5 +145,21 @@ class LoginView(View):
         # 注册时用户名写入到cookie，有效期15天 渲染模板数据[[]]
         response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
 
+        return response
+    
+
+class LogoutView(View):
+    """退出登录"""
+    def get(self, request):
+        """实现退出登录逻辑"""
+        # 清理session
+        logout(request)
+
+        # 退出登录，重定向到登录页
+        response = redirect(reverse('index:index'))
+        
+        # 退出登录时清除cookie中的username
+        response.delete_cookie('username')
+        
         return response
 
