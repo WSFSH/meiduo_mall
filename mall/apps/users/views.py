@@ -140,5 +140,10 @@ class LoginView(View):
             request.session.set_expiry(None)
             
         # 响应登录结果
-        return redirect(reverse('index:index'))
+        response = redirect(reverse('index:index'))
+
+        # 注册时用户名写入到cookie，有效期15天 渲染模板数据[[]]
+        response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
+
+        return response
 
