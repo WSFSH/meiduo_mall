@@ -38,6 +38,11 @@ class SMSCodeView(View):
         :param mobile: 手机号
         :return: JSON
         """
+        # 创建连接到redis的对象
+        redis_conn = get_redis_connection('code')
+        send_sms_flag = redis_conn.get('sms_%s' % mobile)
+        if send_sms_flag:
+            return http.JsonResponse({'code': RETCODE.THROTTLINGERR, 'errmsg': '发送短信过于频繁'})
         # 接收参数
         image_code_client = request.GET.get('image_code')
         uuid = request.GET.get('uuid')
