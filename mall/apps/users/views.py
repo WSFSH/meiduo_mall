@@ -1,7 +1,7 @@
 import re
 
 from django import http
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate
 from django.db import DatabaseError
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -87,10 +87,9 @@ class MobileCountView(View):
         count = User.objects.filter(mobile=mobile).count()
         return http.JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK', 'count': count})
     
-    
+ 
 class LoginView(View):
     """用户名登录"""
-
     def get(self, request):
         """
         提供登录界面
@@ -98,4 +97,48 @@ class LoginView(View):
         :return: 登录界面
         """
         return render(request, 'login.html')
+    
+    def post(self, request):
+        """
+        实现登录逻辑
+        :param request: 请求对象
+        :return: 登录结果
+        """
+        # 接收参数
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        remembered = request.POST.get('remembered')
+    
+        # 校验参数
+        # 判断参数是否齐全
+        if not all([username, password]):
+            return http.HttpResponseBadRequest('缺少必传参数')
+    
+        # 判断用户名是否是5-20个字符
+        if not re.match(r'^[a-zA-Z0-9_-]{5,20}$', username):
+            # return http.HttpResponseBadRequest('请输入正确的用户名或手机号')
+            return render(request, 'login.html', {'account_errmsg': '请输入正确的用户名或手机号'})
+
+        # 判断密码是否是8-20个数字
+        if not re.match(r'^[0-9A-Za-z]{8,20}$', password):
+            # return http.HttpResponseBadRequest('密码最少8位，最长20位')
+            return render(request, 'login.html', {'account_errmsg': '密码最少8位，最长20位'})
+    
+        # 认证登录用户
+        user = authenticate(username=username, password=password)
+        if user is None:
+            return render(request, 'login.html', {'account_errmsg': '用户名或密码错误'})
+    
+        # 实现状态保持
+        login(request, user)
+        # 设置状态保持的周期
+        if remembered != 'on':
+            # 没有记住用户：浏览器会话结束就过期
+            request.session.set_expiry(0)
+        else:
+            # 记住用户：None表示两周后过期
+            request.session.set_expiry(None)
+            
+        # 响应登录结果
+        return redirect(reverse('index:index'))
 
