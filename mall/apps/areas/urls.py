@@ -3,4 +3,5 @@ from . import views
 urlpatterns = [
     url(r'^areas/$', views.AreasView.as_view(), name='areas'),
     url(r'^address/create/$', views.CreateAddressView.as_view(), name='createaddress'),
+    url(r'^address/(?P<address_id>\d+)/$', views.UpdateDestroyAddressView.as_view(), name='updateaddress'),
 ]
