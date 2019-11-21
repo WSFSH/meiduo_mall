@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.views import View
 from django_redis import get_redis_connection
 
+from apps.areas.models import Address
 from apps.users.models import User
 from utils.response_code import RETCODE
 
@@ -200,5 +201,32 @@ class AddressView(LoginRequiredMixin, View):
 
     def get(self, request):
         """提供收货地址界面"""
-        return render(request, 'user_center_site.html')
+        # 获取用户地址列表
+        addresses = Address.objects.filter(user=request.user, is_deleted=False)
+
+        address_dict_list = []
+        for address in addresses:
+            address_dict = {
+                "id": address.id,
+                "title": address.title,
+                "receiver": address.receiver,
+                "province": address.province.name,
+                "province_id": address.province_id,
+                "city": address.city.name,
+                "city_id": address.city_id,
+                "district": address.district.name,
+                "district_id": address.district_id,
+                "place": address.place,
+                "mobile": address.mobile,
+                "tel": address.tel,
+                "email": address.email
+            }
+            address_dict_list.append(address_dict)
+
+        context = {
+            'default_address_id': request.user.default_address_id,
+            'addresses': address_dict_list,
+        }
+
+        return render(request, 'user_center_site.html', context)
 
