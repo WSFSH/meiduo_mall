@@ -229,4 +229,44 @@ class AddressView(LoginRequiredMixin, View):
         }
 
         return render(request, 'user_center_site.html', context)
+    
+    
+class ChangePasswordView(LoginRequiredMixin, View):
+    """修改密码"""
+
+    def get(self, request):
+        """展示修改密码界面"""
+        return render(request, 'user_center_pass.html')
+
+    def post(self, request):
+        """实现修改密码逻辑"""
+        # 1.接收参数
+        old_password = request.POST.get('old_password')
+        new_password = request.POST.get('new_password')
+        new_password2 = request.POST.get('new_password2')
+        # 2.验证参数
+        if not all([old_password, new_password, new_password2]):
+            return http.HttpResponseForbidden('缺少必传参数')
+        if not re.match(r'^[0-9A-Za-z]{8,20}$', new_password):
+            return http.HttpResponseBadRequest('密码最少8位，最长20位')
+        if new_password != new_password2:
+            return http.HttpResponseBadRequest('两次输入的密码不一致')
+
+        # 3.检验旧密码是否正确
+        if not request.user.check_password(old_password):
+            return render(request, 'user_center_pass.html', {'origin_password_errmsg':'原始密码错误'})
+        # 4.更新新密码
+        try:
+            request.user.set_password(new_password)
+            request.user.save()
+        except Exception as e:
+            return render(request, 'user_center_pass.html', {'change_password_errmsg': '修改密码失败'})
+        # 5.退出登陆,删除登陆信息
+        logout(request)
+        # 6.跳转到登陆页面
+        response = redirect(reverse('users:login'))
+
+        response.delete_cookie('username')
+
+        return response
 
