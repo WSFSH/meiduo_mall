@@ -193,4 +193,12 @@ class UserCenterView(LoginRequiredMixin, View):
             'email_active': request.user.email_active,
         }
         return render(request, 'user_center.html', context=context)
+    
+    
+class AddressView(LoginRequiredMixin, View):
+    """用户收货地址"""
+
+    def get(self, request):
+        """提供收货地址界面"""
+        return render(request, 'user_center_site.html')
 
