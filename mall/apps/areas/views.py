@@ -221,3 +221,24 @@ class UpdateDestroyAddressView(LoginRequiredJSONMixin, View):
             return http.JsonResponse({'code': RETCODE.DBERR, 'errmsg': '删除地址失败'})
     
         return http.JsonResponse({'code': RETCODE.OK, 'errmsg': '删除地址成功'})
+    
+    
+class DefaultAddressView(LoginRequiredJSONMixin, View):
+    """设置默认地址"""
+
+    def put(self, request, address_id):
+        """设置默认地址"""
+        # 判断当前收货地址的id是否是属于当前用户
+        address = Address.objects.get(id=address_id)
+        if not (address and address.user == request.user):
+            return http.HttpResponseBadRequest('非法操作')
+
+        try:
+            # 设置地址为默认地址
+            request.user.default_address = address
+            request.user.save()
+        except Exception as e:
+            return http.JsonResponse({'code': RETCODE.DBERR, 'errmsg': '设置默认地址失败'})
+
+        # 响应设置默认地址结果
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': '设置默认地址成功'})
