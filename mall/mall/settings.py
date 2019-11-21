@@ -167,3 +167,16 @@ AUTHENTICATION_BACKENDS = [
 ]
 # 指定未登录用户跳转路径next
 LOGIN_URL = '/login/'
+
+# 邮件相关配置
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.163.com'
+EMAIL_PORT = 25
+# 发送邮件的邮箱
+EMAIL_HOST_USER = 'fsh19991001@163.com'
+# 在邮箱中设置的客户端授权密码
+EMAIL_HOST_PASSWORD = 'python12'
+# 收件人看到的发件人
+EMAIL_FROM = '美多商城<fsh19991001@163.com>'
+# 邮箱验证链接
+EMAIL_VERIFY_URL = 'http://127.0.0.1:8000/emails/verification/'
