@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'apps.index',  # 注册应用
     'apps.users',
     'apps.verifications',
+    'apps.areas',
     
 ]
 
