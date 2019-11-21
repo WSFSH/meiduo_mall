@@ -190,6 +190,7 @@ class UserCenterView(LoginRequiredMixin, View):
             'username': request.user.username,
             'mobile': request.user.mobile,
             'email': request.user.email,
+            'email_active': request.user.email_active,
         }
         return render(request, 'user_center.html', context=context)
 
